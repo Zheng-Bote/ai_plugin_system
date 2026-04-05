@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Embedding Generation Output",
+  "type": "object",
+  "properties": {
+    "embedding": {
+      "type": "array",
+      "items": { "type": "number" },
+      "description": "High-dimensional vector representing the text."
+    },
+    "dimensions": { "type": "integer" },
+    "model": { "type": "string" },
+    "confidence": { "type": "number" }
+  },
+  "required": ["embedding", "dimensions", "model", "confidence"],
+  "additionalProperties": false
+}

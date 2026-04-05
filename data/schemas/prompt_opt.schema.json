@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Prompt Optimization Output",
+  "type": "object",
+  "properties": {
+    "optimized_prompt": { "type": "string" },
+    "suggested_parameters": {
+      "type": "object",
+      "properties": {
+        "temperature": { "type": "number" },
+        "max_tokens": { "type": "integer" }
+      }
+    },
+    "reasoning": { "type": "string" },
+    "confidence": { "type": "number" }
+  },
+  "required": ["optimized_prompt", "reasoning", "confidence"],
+  "additionalProperties": false
+}

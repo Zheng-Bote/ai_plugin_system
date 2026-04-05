@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Text Summarization Output",
+  "type": "object",
+  "properties": {
+    "summary": {
+      "type": "string",
+      "description": "The generated summary text."
+    },
+    "bullet_points": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "A list of key points from the text."
+    },
+    "length": {
+      "type": "string",
+      "enum": ["short", "medium", "long"],
+      "description": "The length classification of the summary."
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "The confidence score of the summarization."
+    }
+  },
+  "required": ["summary", "bullet_points", "length", "confidence"],
+  "additionalProperties": false
+}

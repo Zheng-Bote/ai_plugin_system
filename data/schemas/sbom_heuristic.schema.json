@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SBOM Heuristic Output",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "description": "Name and version of the component analyzed."
+    },
+    "origin": {
+      "type": "object",
+      "properties": {
+        "likely_source": {
+          "type": "string",
+          "description": "The likely repository or origin of the source."
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["likely_source", "confidence", "evidence"]
+    },
+    "build_context": {
+      "type": "string",
+      "description": "Inferred build context or environment."
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    }
+  },
+  "required": ["component", "origin", "build_context", "confidence"],
+  "additionalProperties": false
+}

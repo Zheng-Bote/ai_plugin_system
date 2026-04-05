@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Text Optimization Output",
+  "type": "object",
+  "properties": {
+    "optimized_text": {
+      "type": "string",
+      "description": "The final improved version of the text."
+    },
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["clarity", "grammar", "structure", "tone"]
+          },
+          "before": {
+            "type": "string",
+            "description": "The original text snippet."
+          },
+          "after": {
+            "type": "string",
+            "description": "The optimized text snippet."
+          }
+        },
+        "required": ["type", "before", "after"]
+      },
+      "description": "A list of specific changes made to the text."
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "The confidence score of the optimization."
+    }
+  },
+  "required": ["optimized_text", "changes", "confidence"],
+  "additionalProperties": false
+}

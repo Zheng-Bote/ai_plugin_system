@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Question-Answering Output",
+  "type": "object",
+  "properties": {
+    "answer": {
+      "type": "string",
+      "description": "The direct answer to the question."
+    },
+    "supporting_facts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of facts from the source text that support the answer."
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Confidence score of the answer."
+    },
+    "source_spans": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "integer"
+          },
+          "end": {
+            "type": "integer"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": ["start", "end", "text"]
+      },
+      "description": "Exact text snippets from the source with their character positions."
+    }
+  },
+  "required": ["answer", "supporting_facts", "confidence", "source_spans"],
+  "additionalProperties": false
+}
