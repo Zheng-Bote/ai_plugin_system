@@ -86,6 +86,15 @@ protected:
             return {std::string(input_json), std::string(default_mode)};
         }
     }
+
+    /**
+     * @brief Generates a string instruction for the LLM to follow the JSON schema.
+     */
+    [[nodiscard]] std::string get_schema_instruction() const {
+        if (m_schema.empty()) return "";
+        return "\nYour response MUST be a valid JSON object matching this schema: " + m_schema.dump() + 
+               "\nEnsure all required fields are present and use the exact keys defined.";
+    }
 };
 
 } // namespace ai_plugin

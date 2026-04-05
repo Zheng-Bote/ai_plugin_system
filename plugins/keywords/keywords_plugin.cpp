@@ -1,5 +1,19 @@
 /**
  * SPDX-FileComment: Keywords Plugin Implementation (Refactored)
+ * SPDX-FileType: SOURCE
+ * SPDX-FileContributor: ZHENG Robert
+ * SPDX-FileCopyrightText: 2026 ZHENG Robert
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * @file keywords_plugin.cpp
+ * @brief Production-ready keyword extraction inheriting from BasePlugin
+ * @version 0.3.1
+ * @date 2026-04-05
+ *
+ * @author ZHENG Robert (robert@hase-zheng.net)
+ * @copyright Copyright (c) 2026 ZHENG Robert
+ *
+ * @license Apache-2.0
  */
 #include "base_plugin.hpp"
 #include "llm_client_type.hpp"
@@ -11,7 +25,7 @@ public:
         const auto input_pair = parse_input(input_json, "default");
         const auto& text = input_pair.first;
         [[maybe_unused]] const auto& mode = input_pair.second;
-        LLMQuery q; q.system_prompt = "Extrahiere Keywords. JSON Output."; q.prompt = text; q.json_schema = m_schema.dump();
+        LLMQuery q; q.system_prompt = std::string("Extrahiere Keywords. JSON Output.") + get_schema_instruction(); q.prompt = text; q.json_schema = m_schema.dump();
         auto result = llm_client->query(q);
         if (!result) return std::unexpected(result.error());
         auto res_json = nlohmann::json::parse(result->content);
@@ -23,12 +37,12 @@ public:
         const auto input_pair = parse_input(input_json, "default");
         const auto& text = input_pair.first;
         [[maybe_unused]] const auto& mode = input_pair.second;
-        LLMQuery q; q.system_prompt = "Keywords."; q.prompt = text;
+        LLMQuery q; q.system_prompt = std::string("Keywords.") + get_schema_instruction(); q.prompt = text;
         for (const auto& t : llm_client->query_stream(q)) co_yield t;
     }
     void shutdown() override {}
     [[nodiscard]] std::string_view get_name() const override { return "keywords-plugin"; }
-    [[nodiscard]] std::string_view get_version() const override { return "0.3.0"; }
+    [[nodiscard]] std::string_view get_version() const override { return "0.3.1"; }
 protected:
     [[nodiscard]] std::string get_schema_path() const override { return "data/schemas/keywords.schema.json"; }
 };

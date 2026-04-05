@@ -111,13 +111,22 @@ std::expected<LLMResponse, std::string> HttpLLMClient::query(const LLMQuery& que
         if (result.has_value()) {
             try {
                 auto res_json = json::parse(result.value());
+                
+                // Check for API-level errors
+                if (res_json.contains("error")) {
+                    std::println("API Error from model {}: {}", model, res_json["error"].dump());
+                    continue; // Try next model
+                }
+
                 LLMResponse response;
                 response.content = res_json["choices"][0]["message"]["content"];
                 response.model_used = model;
                 response.total_tokens = res_json.value("usage", json::object()).value("total_tokens", 0);
                 response.response_hash = std::format("{:x}", std::hash<std::string>{}(response.content));
                 return response;
-            } catch (...) {}
+            } catch (const std::exception& e) {
+                std::println("Error parsing response from model {}: {}", model, e.what());
+            }
         }
     }
 

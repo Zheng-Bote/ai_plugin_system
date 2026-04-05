@@ -7,7 +7,7 @@
  *
  * @file text_analysis_plugin.cpp
  * @brief Production-ready text analysis inheriting from BasePlugin
- * @version 0.3.0
+ * @version 0.3.1
  * @date 2026-04-05
  *
  * @author ZHENG Robert (robert@hase-zheng.net)
@@ -32,7 +32,7 @@ public:
         [[maybe_unused]] const auto& mode = input_pair.second;
         
         LLMQuery query;
-        query.system_prompt = "Führe eine Sentiment-Analyse und Klassifizierung durch. JSON Output.";
+        query.system_prompt = std::string("Führe eine Sentiment-Analyse und Klassifizierung durch. JSON Output.") + get_schema_instruction();
         query.prompt = text;
         query.json_schema = m_schema.dump();
         query.task_type = TaskType::ANALYSIS;
@@ -53,14 +53,14 @@ public:
         const auto& text = input_pair.first;
         [[maybe_unused]] const auto& mode = input_pair.second;
         LLMQuery query;
-        query.system_prompt = "Analysiere Text. JSON Stream.";
+        query.system_prompt = std::string("Analysiere Text. JSON Stream.") + get_schema_instruction();
         query.prompt = text;
         for (const auto& token : llm_client->query_stream(query)) co_yield token;
     }
 
     void shutdown() override {}
     [[nodiscard]] std::string_view get_name() const override { return "text-analysis-plugin"; }
-    [[nodiscard]] std::string_view get_version() const override { return "0.3.0"; }
+    [[nodiscard]] std::string_view get_version() const override { return "0.3.1"; }
 
 protected:
     [[nodiscard]] std::string get_schema_path() const override { return "data/schemas/text_analysis.schema.json"; }

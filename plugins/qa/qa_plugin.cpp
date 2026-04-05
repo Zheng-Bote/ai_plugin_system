@@ -7,7 +7,7 @@
  *
  * @file qa_plugin.cpp
  * @brief Production-ready QA inheriting from BasePlugin
- * @version 0.3.0
+ * @version 0.3.1
  * @date 2026-04-05
  *
  * @author ZHENG Robert (robert@hase-zheng.net)
@@ -27,7 +27,7 @@ public:
     [[nodiscard]] std::expected<std::string, std::string> analyze(std::string_view input_json, LLMClient* llm_client) override {
         if (!llm_client) return std::unexpected("LLM client not provided");
         auto input = nlohmann::json::parse(input_json);
-        LLMQuery q; q.system_prompt = "Beantworte die Frage basierend auf dem Kontext. JSON Output.";
+        LLMQuery q; q.system_prompt = "Beantworte die Frage basierend auf dem Kontext. JSON Output." + get_schema_instruction();
         q.prompt = std::format("Context: {}\nQuestion: {}", input.value("text", ""), input.value("question", ""));
         q.json_schema = m_schema.dump();
         auto result = llm_client->query(q);
@@ -42,14 +42,14 @@ public:
     [[nodiscard]] Generator<std::string> analyze_stream(std::string_view input_json, LLMClient* llm_client) override {
         if (!llm_client) { co_yield "Error: LLM client not provided"; co_return; }
         auto input = nlohmann::json::parse(input_json);
-        LLMQuery q; q.system_prompt = "QA Stream.";
+        LLMQuery q; q.system_prompt = "QA Stream." + get_schema_instruction();
         q.prompt = std::format("Context: {}\nQuestion: {}", input.value("text", ""), input.value("question", ""));
         for (const auto& token : llm_client->query_stream(q)) co_yield token;
     }
 
     void shutdown() override {}
     [[nodiscard]] std::string_view get_name() const override { return "qa-plugin"; }
-    [[nodiscard]] std::string_view get_version() const override { return "0.3.0"; }
+    [[nodiscard]] std::string_view get_version() const override { return "0.3.1"; }
 
 protected:
     [[nodiscard]] std::string get_schema_path() const override { return "data/schemas/qa.schema.json"; }

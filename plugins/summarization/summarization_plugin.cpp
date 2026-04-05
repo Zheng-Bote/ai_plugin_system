@@ -7,7 +7,7 @@
  *
  * @file summarization_plugin.cpp
  * @brief Production-ready text summarization inheriting from BasePlugin
- * @version 0.3.0
+ * @version 0.3.1
  * @date 2026-04-05
  *
  * @author ZHENG Robert (robert@hase-zheng.net)
@@ -37,7 +37,7 @@ public:
         const auto& mode = input_pair.second;
         
         LLMQuery query;
-        query.system_prompt = get_system_prompt(mode);
+        query.system_prompt = get_system_prompt(mode) + get_schema_instruction();
         query.prompt = text;
         query.json_schema = m_schema.dump();
         query.task_type = TaskType::SUMMARIZATION;
@@ -66,7 +66,7 @@ public:
         const auto& mode = input_pair.second;
         
         LLMQuery query;
-        query.system_prompt = get_system_prompt(mode);
+        query.system_prompt = get_system_prompt(mode) + get_schema_instruction();
         query.prompt = text;
         query.task_type = TaskType::SUMMARIZATION;
 
@@ -80,7 +80,7 @@ public:
     }
 
     [[nodiscard]] std::string_view get_name() const override { return "summarization-plugin"; }
-    [[nodiscard]] std::string_view get_version() const override { return "0.3.0"; }
+    [[nodiscard]] std::string_view get_version() const override { return "0.3.1"; }
 
 protected:
     [[nodiscard]] std::expected<void, std::string> init_impl() override {

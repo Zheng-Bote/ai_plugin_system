@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
 
 project(ai_plugin_system 
-    VERSION 0.3.0 
+    VERSION 0.3.1 
     DESCRIPTION "AI Plugin System - DRAFT"
     HOMEPAGE_URL "https://github.com/Zheng-Bote/ai_plugin_system"
     LANGUAGES CXX)

@@ -7,7 +7,7 @@
  *
  * @file sbom_heuristic_plugin.cpp
  * @brief Production-ready SBOM analysis inheriting from BasePlugin
- * @version 0.3.0
+ * @version 0.3.1
  * @date 2026-04-05
  *
  * @author ZHENG Robert (robert@hase-zheng.net)
@@ -30,7 +30,7 @@ public:
         const auto& text = input_pair.first;
         [[maybe_unused]] const auto& mode = input_pair.second;
         LLMQuery q;
-        q.system_prompt = "Analysiere SBOM/Artefakt-Daten und liefere Herkunftsheuristiken. JSON Output.";
+        q.system_prompt = std::string("Analysiere SBOM/Artefakt-Daten und liefere Herkunftsheuristiken. JSON Output.") + get_schema_instruction();
         q.prompt = text; q.json_schema = m_schema.dump();
         auto result = llm_client->query(q);
         if (!result) return std::unexpected(result.error());
@@ -46,13 +46,13 @@ public:
         const auto input_pair = parse_input(input_json, "default");
         const auto& text = input_pair.first;
         [[maybe_unused]] const auto& mode = input_pair.second;
-        LLMQuery q; q.system_prompt = "Analysiere SBOM. JSON Stream."; q.prompt = text;
+        LLMQuery q; q.system_prompt = std::string("Analysiere SBOM. JSON Stream.") + get_schema_instruction(); q.prompt = text;
         for (const auto& token : llm_client->query_stream(q)) co_yield token;
     }
 
     void shutdown() override {}
     [[nodiscard]] std::string_view get_name() const override { return "sbom-heuristic-plugin"; }
-    [[nodiscard]] std::string_view get_version() const override { return "0.3.0"; }
+    [[nodiscard]] std::string_view get_version() const override { return "0.3.1"; }
 
 protected:
     [[nodiscard]] std::string get_schema_path() const override { return "data/schemas/sbom_heuristic.schema.json"; }
