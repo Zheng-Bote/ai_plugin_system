@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
 
 project(ai_plugin_system 
-    VERSION 0.1.0 
+    VERSION 0.3.0 
     DESCRIPTION "AI Plugin System - DRAFT"
     HOMEPAGE_URL "https://github.com/Zheng-Bote/ai_plugin_system"
     LANGUAGES CXX)
@@ -22,13 +22,19 @@ endif()
 find_package(CURL REQUIRED)
 find_package(nlohmann_json QUIET)
 if(NOT nlohmann_json_FOUND)
-    # Fallback to include directory check if find_package fails
     find_path(NLOHMANN_JSON_INCLUDE_DIR "nlohmann/json.hpp")
     if(NLOHMANN_JSON_INCLUDE_DIR)
         include_directories(${NLOHMANN_JSON_INCLUDE_DIR})
-    else()
-        message(FATAL_ERROR "nlohmann_json not found. Please install it.")
     endif()
+endif()
+
+# Valijson (Header-only)
+find_path(VALIJSON_INCLUDE_DIR "valijson/validator.hpp")
+if(VALIJSON_INCLUDE_DIR)
+    include_directories(${VALIJSON_INCLUDE_DIR})
+else()
+    # Fallback to common location
+    include_directories(/usr/include)
 endif()
 
 # Directories

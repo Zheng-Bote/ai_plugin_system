@@ -1,13 +1,13 @@
 /**
- * SPDX-FileComment: SBOM Heuristic Plugin Definition
+ * SPDX-FileComment: SBOM Heuristic Plugin Implementation (Refactored)
  * SPDX-FileType: SOURCE
  * SPDX-FileContributor: ZHENG Robert
  * SPDX-FileCopyrightText: 2026 ZHENG Robert
  * SPDX-License-Identifier: Apache-2.0
  *
  * @file sbom_heuristic_plugin.cpp
- * @brief SBOM Heuristic Plugin skeleton
- * @version 0.1.0
+ * @brief Production-ready SBOM analysis inheriting from BasePlugin
+ * @version 0.3.0
  * @date 2026-04-05
  *
  * @author ZHENG Robert (robert@hase-zheng.net)
@@ -16,73 +16,51 @@
  * @license Apache-2.0
  */
 
-#include "plugin_type.hpp"
+#include "base_plugin.hpp"
+#include "llm_client_type.hpp"
 #include <nlohmann/json.hpp>
-#include <print>
-
-using json = nlohmann::json;
 
 namespace ai_plugin {
 
-class SbomHeuristicPlugin : public Plugin {
+class SbomHeuristicPlugin : public BasePlugin {
 public:
-    [[nodiscard]] std::expected<void, std::string> init([[maybe_unused]] std::string_view config_json) override {
-        std::println("SbomHeuristicPlugin initialized.");
-        return {};
-    }
-
-    [[nodiscard]] std::expected<std::string, std::string> analyze(std::string_view input_json, [[maybe_unused]] LLMClient* llm_client) override {
-        std::println("SbomHeuristicPlugin analyzing SBOM input...");
-        
-        std::string component_name = "unknown";
+    [[nodiscard]] std::expected<std::string, std::string> analyze(std::string_view input_json, LLMClient* llm_client) override {
+        if (!llm_client) return std::unexpected("LLM client not provided");
+        const auto input_pair = parse_input(input_json, "default");
+        const auto& text = input_pair.first;
+        [[maybe_unused]] const auto& mode = input_pair.second;
+        LLMQuery q;
+        q.system_prompt = "Analysiere SBOM/Artefakt-Daten und liefere Herkunftsheuristiken. JSON Output.";
+        q.prompt = text; q.json_schema = m_schema.dump();
+        auto result = llm_client->query(q);
+        if (!result) return std::unexpected(result.error());
         try {
-            auto input = json::parse(input_json);
-            if (input.contains("component")) component_name = input["component"];
-        } catch (...) {}
-
-        // Mocking structured output
-        json result = {
-            {"component", component_name},
-            {"origin", {
-                {"likely_source", "github/mock-origin"},
-                {"confidence", 0.88},
-                {"evidence", {"version string match"}}
-            }},
-            {"build_context", "linux-x64-gcc"},
-            {"confidence", 0.92}
-        };
-        
-        return result.dump(2);
+            auto res_json = nlohmann::json::parse(result->content);
+            if (auto val = validate_output(res_json); !val) return std::unexpected(val.error());
+            return res_json.dump(2);
+        } catch (...) { return std::unexpected("Invalid LLM JSON"); }
     }
 
-    [[nodiscard]] Generator<std::string> analyze_stream(std::string_view input_json, [[maybe_unused]] LLMClient* llm_client) override {
-        std::println("SbomHeuristicPlugin streaming SBOM analysis...");
-        co_yield "Analyzing SBOM: ";
-        co_yield std::string(input_json);
-        co_yield " ... Done.";
+    [[nodiscard]] Generator<std::string> analyze_stream(std::string_view input_json, LLMClient* llm_client) override {
+        if (!llm_client) { co_yield "Error: LLM client not provided"; co_return; }
+        const auto input_pair = parse_input(input_json, "default");
+        const auto& text = input_pair.first;
+        [[maybe_unused]] const auto& mode = input_pair.second;
+        LLMQuery q; q.system_prompt = "Analysiere SBOM. JSON Stream."; q.prompt = text;
+        for (const auto& token : llm_client->query_stream(q)) co_yield token;
     }
 
-    void shutdown() override {
-        std::println("SbomHeuristicPlugin shutting down.");
-    }
+    void shutdown() override {}
+    [[nodiscard]] std::string_view get_name() const override { return "sbom-heuristic-plugin"; }
+    [[nodiscard]] std::string_view get_version() const override { return "0.3.0"; }
 
-    [[nodiscard]] std::string_view get_name() const override {
-        return "sbom-heuristic-plugin";
-    }
-
-    [[nodiscard]] std::string_view get_version() const override {
-        return "0.1.0";
-    }
+protected:
+    [[nodiscard]] std::string get_schema_path() const override { return "data/schemas/sbom_heuristic.schema.json"; }
 };
 
 extern "C" {
-    Plugin* create_plugin() {
-        return new SbomHeuristicPlugin();
-    }
-
-    void destroy_plugin(Plugin* plugin) {
-        delete plugin;
-    }
+    Plugin* create_plugin() { return new SbomHeuristicPlugin(); }
+    void destroy_plugin(Plugin* plugin) { delete plugin; }
 }
 
 } // namespace ai_plugin

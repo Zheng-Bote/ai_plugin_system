@@ -7,6 +7,7 @@ Ein modulares, erweiterbares CLI/Library-Stack mit Plug-In System und intelligen
 Die vollständige Dokumentation der Architektur und Designentscheidungen befindet sich im Ordner `docs/`.
 
 - [Architektur & Datenfluss](docs/architecture/architecture.md)
+- [System-Optimierungen (v3+)](docs/architecture/optimizations.md)
 
 ## Features
 
@@ -66,4 +67,6 @@ Kopiere `.env.example` zu `.env` und setze deinen API Key.
 
 - **MVP**: Grundlegendes Plugin-System, Hardcoded Routing, 2 Mock Plugins, C++23. _(Erledigt)_
 - **v1**: Echter HTTP Client (libcurl), nlohmann::json Validierung, `.env`-Parser (via EnvUtil), dlopen/dlsym Plugin-Loader. _(Erledigt)_
-- **v2**: Asynchrones Interface (Coroutines), Streaming-Support, Secret Manager Anbindung, WASM Sandboxing.
+- **v2**: Asynchrones Interface (Coroutines), Streaming-Support. _(Erledigt)_
+- **v3**: JSON-Schema Validierung (valijson), `curl_multi` Async-Performance, `BasePlugin`-Refactoring. _(Erledigt)_
+- **v4**: WASM-Export, plugin sandboxing, Secret Manager.

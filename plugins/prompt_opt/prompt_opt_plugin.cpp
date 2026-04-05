@@ -1,106 +1,36 @@
 /**
- * SPDX-FileComment: Prompt Optimization Plugin Implementation
- * SPDX-FileType: SOURCE
- * SPDX-FileContributor: ZHENG Robert
- * SPDX-FileCopyrightText: 2026 ZHENG Robert
- * SPDX-License-Identifier: Apache-2.0
- *
- * @file prompt_opt_plugin.cpp
- * @brief Production-ready prompt engineering and optimization
- * @version 0.1.0
- * @date 2026-04-05
- *
- * @author ZHENG Robert (robert@hase-zheng.net)
- * @copyright Copyright (c) 2026 ZHENG Robert
- *
- * @license Apache-2.0
+ * SPDX-FileComment: Prompt Optimization Plugin Implementation (Refactored)
  */
-
-#include "plugin_type.hpp"
+#include "base_plugin.hpp"
 #include "llm_client_type.hpp"
-#include <nlohmann/json.hpp>
-#include <print>
-#include <string>
-#include <fstream>
-#include <vector>
-
-using json = nlohmann::json;
-
 namespace ai_plugin {
-
-class PromptOptPlugin : public Plugin {
+class PromptOptPlugin : public BasePlugin {
 public:
-    [[nodiscard]] std::expected<void, std::string> init(std::string_view config_json) override {
-        try {
-            auto config = json::parse(config_json);
-            m_config = config;
-            
-            std::ifstream schema_file("data/schemas/prompt_opt.schema.json");
-            if (schema_file.is_open()) {
-                m_schema = json::parse(schema_file);
-            }
-        } catch (const std::exception& e) {
-            return std::unexpected(std::format("PromptOptPlugin init fail: {}", e.what()));
-        }
-        return {};
-    }
-
     [[nodiscard]] std::expected<std::string, std::string> analyze(std::string_view input_json, LLMClient* llm_client) override {
         if (!llm_client) return std::unexpected("LLM client not provided");
-
-        std::string text = parse_input(input_json);
-        
-        LLMQuery query;
-        query.system_prompt = "Optimiere den folgenden Prompt für bessere LLM-Ergebnisse. Verbessere Klarheit, Präzision und Struktur. Antworte in striktem JSON gemäß Schema.";
-        query.prompt = text;
-        query.json_schema = m_schema.dump();
-        query.task_type = TaskType::ANALYSIS;
-
-        auto result = llm_client->query(query);
+        const auto input_pair = parse_input(input_json, "default");
+        const auto& text = input_pair.first;
+        [[maybe_unused]] const auto& mode = input_pair.second;
+        LLMQuery q; q.system_prompt = "Optimiere Prompt. JSON Output."; q.prompt = text; q.json_schema = m_schema.dump();
+        auto result = llm_client->query(q);
         if (!result) return std::unexpected(result.error());
-
-        return result->content;
+        auto res_json = nlohmann::json::parse(result->content);
+        if (auto val = validate_output(res_json); !val) return std::unexpected(val.error());
+        return res_json.dump(2);
     }
-
     [[nodiscard]] Generator<std::string> analyze_stream(std::string_view input_json, LLMClient* llm_client) override {
-        if (!llm_client) {
-            co_yield "Error: LLM client not provided";
-            co_return;
-        }
-
-        std::string text = parse_input(input_json);
-        LLMQuery query;
-        query.system_prompt = "Optimiere den Prompt für bessere Ergebnisse. Antworte als Stream.";
-        query.prompt = text;
-        query.task_type = TaskType::ANALYSIS;
-
-        for (const auto& token : llm_client->query_stream(query)) {
-            co_yield token;
-        }
+        if (!llm_client) { co_yield "Error"; co_return; }
+        const auto input_pair = parse_input(input_json, "default");
+        const auto& text = input_pair.first;
+        [[maybe_unused]] const auto& mode = input_pair.second;
+        LLMQuery q; q.system_prompt = "Prompt Opt."; q.prompt = text;
+        for (const auto& t : llm_client->query_stream(q)) co_yield t;
     }
-
     void shutdown() override {}
-
     [[nodiscard]] std::string_view get_name() const override { return "prompt-opt-plugin"; }
-    [[nodiscard]] std::string_view get_version() const override { return "0.1.0"; }
-
-private:
-    json m_config;
-    json m_schema;
-
-    std::string parse_input(std::string_view input_json) {
-        try {
-            auto input = json::parse(input_json);
-            return input.value("text", std::string(input_json));
-        } catch (...) {
-            return std::string(input_json);
-        }
-    }
+    [[nodiscard]] std::string_view get_version() const override { return "0.3.0"; }
+protected:
+    [[nodiscard]] std::string get_schema_path() const override { return "data/schemas/prompt_opt.schema.json"; }
 };
-
-extern "C" {
-    Plugin* create_plugin() { return new PromptOptPlugin(); }
-    void destroy_plugin(Plugin* plugin) { delete plugin; }
+extern "C" { Plugin* create_plugin() { return new PromptOptPlugin(); } void destroy_plugin(Plugin* p) { delete p; } }
 }
-
-} // namespace ai_plugin
