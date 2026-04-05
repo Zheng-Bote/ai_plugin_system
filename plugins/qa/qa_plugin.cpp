@@ -7,7 +7,7 @@
  *
  * @file qa_plugin.cpp
  * @brief Production-ready QA inheriting from BasePlugin
- * @version 0.3.1
+ * @version 0.4.2
  * @date 2026-04-05
  *
  * @author ZHENG Robert (robert@hase-zheng.net)
@@ -24,22 +24,23 @@ namespace ai_plugin {
 
 class QAPlugin : public BasePlugin {
 public:
-    [[nodiscard]] std::expected<std::string, std::string> analyze(std::string_view input_json, LLMClient* llm_client) override {
-        if (!llm_client) return std::unexpected("LLM client not provided");
+    [[nodiscard]] Task<std::expected<std::string, std::string>> analyze(std::string input_json, LLMClient* llm_client) override {
+        if (!llm_client) co_return std::unexpected("LLM client not provided");
         auto input = nlohmann::json::parse(input_json);
         LLMQuery q; q.system_prompt = "Beantworte die Frage basierend auf dem Kontext. JSON Output." + get_schema_instruction();
         q.prompt = std::format("Context: {}\nQuestion: {}", input.value("text", ""), input.value("question", ""));
         q.json_schema = m_schema.dump();
-        auto result = llm_client->query(q);
-        if (!result) return std::unexpected(result.error());
+        
+        auto result = co_await llm_client->query(q);
+        if (!result) co_return std::unexpected(result.error());
         try {
             auto res_json = nlohmann::json::parse(result->content);
-            if (auto val = validate_output(res_json); !val) return std::unexpected(val.error());
-            return res_json.dump(2);
-        } catch (...) { return std::unexpected("Invalid LLM JSON"); }
+            if (auto val = validate_output(res_json); !val) co_return std::unexpected(val.error());
+            co_return res_json.dump(2);
+        } catch (...) { co_return std::unexpected("Invalid LLM JSON"); }
     }
 
-    [[nodiscard]] Generator<std::string> analyze_stream(std::string_view input_json, LLMClient* llm_client) override {
+    [[nodiscard]] Generator<std::string> analyze_stream(std::string input_json, LLMClient* llm_client) override {
         if (!llm_client) { co_yield "Error: LLM client not provided"; co_return; }
         auto input = nlohmann::json::parse(input_json);
         LLMQuery q; q.system_prompt = "QA Stream." + get_schema_instruction();
@@ -49,7 +50,8 @@ public:
 
     void shutdown() override {}
     [[nodiscard]] std::string_view get_name() const override { return "qa-plugin"; }
-    [[nodiscard]] std::string_view get_version() const override { return "0.3.1"; }
+    [[nodiscard]] std::string_view get_version() const override { return "0.4.2"; }
+    [[nodiscard]] std::string_view get_description() const override { return "Answers questions based on provided context."; }
 
 protected:
     [[nodiscard]] std::string get_schema_path() const override { return "data/schemas/qa.schema.json"; }

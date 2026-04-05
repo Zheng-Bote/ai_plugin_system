@@ -6,8 +6,8 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  * @file coro_type.hpp
- * @brief Minimal Task and Generator implementations for C++20 Coroutines
- * @version 0.1.0
+ * @brief Robust Task and Generator implementations for C++20 Coroutines
+ * @version 0.4.2
  * @date 2026-04-05
  *
  * @author ZHENG Robert (robert@hase-zheng.net)
@@ -22,19 +22,33 @@
 #include <optional>
 #include <utility>
 #include <exception>
+#include <thread>
+#include <chrono>
 
 namespace ai_plugin {
 
 /**
- * @brief A simple Task type for asynchronous operations.
+ * @brief A task that supports awaiting and correctly handles coroutine suspension.
  */
 template <typename T>
 struct Task {
     struct promise_type {
         T result;
+        std::coroutine_handle<> caller;
+
         auto get_return_object() { return Task{std::coroutine_handle<promise_type>::from_promise(*this)}; }
         auto initial_suspend() { return std::suspend_always{}; }
-        auto final_suspend() noexcept { return std::suspend_always{}; }
+        auto final_suspend() noexcept {
+            struct FinalAwaiter {
+                bool await_ready() const noexcept { return false; }
+                std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> h) noexcept {
+                    if (h.promise().caller) return h.promise().caller;
+                    return std::noop_coroutine();
+                }
+                void await_resume() noexcept {}
+            };
+            return FinalAwaiter{};
+        }
         void return_value(T value) { result = std::move(value); }
         void unhandled_exception() { std::terminate(); }
     };
@@ -42,10 +56,28 @@ struct Task {
     std::coroutine_handle<promise_type> handle;
 
     explicit Task(std::coroutine_handle<promise_type> h) : handle(h) {}
+    Task(Task&& other) noexcept : handle(other.handle) { other.handle = nullptr; }
     ~Task() { if (handle) handle.destroy(); }
 
+    bool await_ready() const { return handle.done(); }
+    
+    auto await_suspend(std::coroutine_handle<> h) {
+        handle.promise().caller = h;
+        return handle; // Symmetric transfer!
+    }
+
+    T await_resume() { return std::move(handle.promise().result); }
+
     T get() {
+        if (!handle) throw std::runtime_error("Empty task handle");
+        
+        // Initial resume to start the coroutine
         if (!handle.done()) handle.resume();
+        
+        // Wait for completion (the coroutine will be resumed by background threads if it suspends)
+        while (!handle.done()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        }
         return std::move(handle.promise().result);
     }
 };

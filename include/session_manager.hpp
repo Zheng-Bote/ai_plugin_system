@@ -7,7 +7,7 @@
  *
  * @file session_manager.hpp
  * @brief Manages conversation history and state
- * @version 0.1.0
+ * @version 0.4.2
  * @date 2026-04-05
  *
  * @author ZHENG Robert (robert@hase-zheng.net)

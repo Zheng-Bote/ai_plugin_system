@@ -7,7 +7,7 @@
  *
  * @file result_cache.hpp
  * @brief Thread-safe LRU cache for LLM results
- * @version 0.1.0
+ * @version 0.4.2
  * @date 2026-04-05
  *
  * @author ZHENG Robert (robert@hase-zheng.net)

@@ -1,13 +1,13 @@
 /**
- * SPDX-FileComment: Text Summarization Plugin Implementation (Refactored)
+ * SPDX-FileComment: Text Summarization Plugin Implementation (Async Task)
  * SPDX-FileType: SOURCE
  * SPDX-FileContributor: ZHENG Robert
  * SPDX-FileCopyrightText: 2026 ZHENG Robert
  * SPDX-License-Identifier: Apache-2.0
  *
  * @file summarization_plugin.cpp
- * @brief Production-ready text summarization inheriting from BasePlugin
- * @version 0.3.1
+ * @brief Text Summarization Plugin Implementation
+ * @version 0.4.2
  * @date 2026-04-05
  *
  * @author ZHENG Robert (robert@hase-zheng.net)
@@ -20,8 +20,6 @@
 #include "llm_client_type.hpp"
 #include <nlohmann/json.hpp>
 #include <print>
-#include <string>
-#include <unordered_map>
 
 using json = nlohmann::json;
 
@@ -29,8 +27,8 @@ namespace ai_plugin {
 
 class SummarizationPlugin : public BasePlugin {
 public:
-    [[nodiscard]] std::expected<std::string, std::string> analyze(std::string_view input_json, LLMClient* llm_client) override {
-        if (!llm_client) return std::unexpected("LLM client not provided");
+    [[nodiscard]] Task<std::expected<std::string, std::string>> analyze(std::string input_json, LLMClient* llm_client) override {
+        if (!llm_client) co_return std::unexpected("LLM client not provided");
 
         const auto input_pair = parse_input(input_json, m_default_mode);
         const auto& text = input_pair.first;
@@ -43,77 +41,45 @@ public:
         query.task_type = TaskType::SUMMARIZATION;
         query.temperature = 0.3;
 
-        auto result = llm_client->query(query);
-        if (!result) return std::unexpected(result.error());
+        // True async co_await!
+        auto result = co_await llm_client->query(query);
+        if (!result) co_return std::unexpected(result.error());
 
         try {
             auto res_json = json::parse(result->content);
-            if (auto val = validate_output(res_json); !val) return std::unexpected(val.error());
-            return res_json.dump(2);
-        } catch (const std::exception& e) {
-            return std::unexpected(std::format("Invalid JSON from LLM: {}", e.what()));
+            if (auto val = validate_output(res_json); !val) co_return std::unexpected(val.error());
+            co_return res_json.dump(2);
+        } catch (...) {
+            co_return std::unexpected("Invalid JSON from LLM");
         }
     }
 
-    [[nodiscard]] Generator<std::string> analyze_stream(std::string_view input_json, LLMClient* llm_client) override {
-        if (!llm_client) {
-            co_yield "Error: LLM client not provided";
-            co_return;
-        }
-
+    [[nodiscard]] Generator<std::string> analyze_stream(std::string input_json, LLMClient* llm_client) override {
+        if (!llm_client) { co_yield "Error"; co_return; }
         const auto input_pair = parse_input(input_json, m_default_mode);
-        const auto& text = input_pair.first;
-        const auto& mode = input_pair.second;
-        
-        LLMQuery query;
-        query.system_prompt = get_system_prompt(mode) + get_schema_instruction();
-        query.prompt = text;
-        query.task_type = TaskType::SUMMARIZATION;
-
-        for (const auto& token : llm_client->query_stream(query)) {
-            co_yield token;
-        }
+        LLMQuery q; q.system_prompt = get_system_prompt(input_pair.second) + get_schema_instruction(); q.prompt = input_pair.first;
+        for (const auto& token : llm_client->query_stream(q)) co_yield token;
     }
 
-    void shutdown() override {
-        std::println("SummarizationPlugin shutting down.");
-    }
-
-    [[nodiscard]] std::string_view get_name() const override { return "summarization-plugin"; }
-    [[nodiscard]] std::string_view get_version() const override { return "0.3.1"; }
+    void shutdown() override {}
+    [[nodiscard]] std::string_view get_name() const override { return "summarization"; }
+    [[nodiscard]] std::string_view get_version() const override { return "0.4.2"; }
+    [[nodiscard]] std::string_view get_description() const override { return "Summarizes long texts into various formats."; }
 
 protected:
     [[nodiscard]] std::expected<void, std::string> init_impl() override {
         m_default_mode = m_config.value("mode", "short");
-        if (m_config.contains("custom_prompts")) {
-            m_custom_prompts = m_config["custom_prompts"].get<std::unordered_map<std::string, std::string>>();
-        }
         return {};
     }
-
-    [[nodiscard]] std::string get_schema_path() const override {
-        return "data/schemas/summarization.schema.json";
-    }
+    [[nodiscard]] std::string get_schema_path() const override { return "data/schemas/summarization.schema.json"; }
 
 private:
     std::string m_default_mode = "short";
-    std::unordered_map<std::string, std::string> m_custom_prompts;
-
     std::string get_system_prompt(const std::string& mode) {
-        if (m_custom_prompts.contains(mode)) return m_custom_prompts[mode];
-
-        if (mode == "short") return "Fasse in maximal 3 Sätzen zusammen. JSON Output.";
-        if (mode == "bullet") return "Erstelle Stichpunkte. JSON Output.";
-        if (mode == "executive") return "Erstelle ein Executive Summary. JSON Output.";
-        if (mode == "technical") return "Fasse technische Details zusammen. JSON Output.";
-        
-        return "Fasse den Text zusammen. JSON Output.";
+        if (mode == "executive") return "Executive Summary mode.";
+        return "General summary mode.";
     }
 };
 
-extern "C" {
-    Plugin* create_plugin() { return new SummarizationPlugin(); }
-    void destroy_plugin(Plugin* plugin) { delete plugin; }
+extern "C" { Plugin* create_plugin() { return new SummarizationPlugin(); } void destroy_plugin(Plugin* p) { delete p; } }
 }
-
-} // namespace ai_plugin

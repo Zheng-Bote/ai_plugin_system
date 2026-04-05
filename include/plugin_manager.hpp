@@ -7,7 +7,7 @@
  *
  * @file plugin_manager.hpp
  * @brief Dynamic Plugin Loader and Manager using dlopen/dlsym
- * @version 0.1.0
+ * @version 0.4.2
  * @date 2026-04-05
  *
  * @author ZHENG Robert (robert@hase-zheng.net)

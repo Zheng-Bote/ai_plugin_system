@@ -7,7 +7,7 @@
  *
  * @file schema_validator_util.hpp
  * @brief Helper to validate nlohmann::json against a schema file
- * @version 0.1.0
+ * @version 0.4.2
  * @date 2026-04-05
  *
  * @author ZHENG Robert (robert@hase-zheng.net)

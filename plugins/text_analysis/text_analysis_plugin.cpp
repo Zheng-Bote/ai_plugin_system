@@ -7,7 +7,7 @@
  *
  * @file text_analysis_plugin.cpp
  * @brief Production-ready text analysis inheriting from BasePlugin
- * @version 0.3.1
+ * @version 0.4.2
  * @date 2026-04-05
  *
  * @author ZHENG Robert (robert@hase-zheng.net)
@@ -25,8 +25,8 @@ namespace ai_plugin {
 
 class TextAnalysisPlugin : public BasePlugin {
 public:
-    [[nodiscard]] std::expected<std::string, std::string> analyze(std::string_view input_json, LLMClient* llm_client) override {
-        if (!llm_client) return std::unexpected("LLM client not provided");
+    [[nodiscard]] Task<std::expected<std::string, std::string>> analyze(std::string input_json, LLMClient* llm_client) override {
+        if (!llm_client) co_return std::unexpected("LLM client not provided");
         const auto input_pair = parse_input(input_json, "default");
         const auto& text = input_pair.first;
         [[maybe_unused]] const auto& mode = input_pair.second;
@@ -37,17 +37,17 @@ public:
         query.json_schema = m_schema.dump();
         query.task_type = TaskType::ANALYSIS;
 
-        auto result = llm_client->query(query);
-        if (!result) return std::unexpected(result.error());
+        auto result = co_await llm_client->query(query);
+        if (!result) co_return std::unexpected(result.error());
 
         try {
             auto res_json = nlohmann::json::parse(result->content);
-            if (auto val = validate_output(res_json); !val) return std::unexpected(val.error());
-            return res_json.dump(2);
-        } catch (...) { return std::unexpected("Invalid LLM JSON"); }
+            if (auto val = validate_output(res_json); !val) co_return std::unexpected(val.error());
+            co_return res_json.dump(2);
+        } catch (...) { co_return std::unexpected("Invalid LLM JSON"); }
     }
 
-    [[nodiscard]] Generator<std::string> analyze_stream(std::string_view input_json, LLMClient* llm_client) override {
+    [[nodiscard]] Generator<std::string> analyze_stream(std::string input_json, LLMClient* llm_client) override {
         if (!llm_client) { co_yield "Error: LLM client not provided"; co_return; }
         const auto input_pair = parse_input(input_json, "default");
         const auto& text = input_pair.first;
@@ -60,7 +60,8 @@ public:
 
     void shutdown() override {}
     [[nodiscard]] std::string_view get_name() const override { return "text-analysis-plugin"; }
-    [[nodiscard]] std::string_view get_version() const override { return "0.3.1"; }
+    [[nodiscard]] std::string_view get_version() const override { return "0.4.2"; }
+    [[nodiscard]] std::string_view get_description() const override { return "Analyzes text for sentiment, entities, and intent."; }
 
 protected:
     [[nodiscard]] std::string get_schema_path() const override { return "data/schemas/text_analysis.schema.json"; }

@@ -7,7 +7,7 @@
  *
  * @file sbom_heuristic_plugin.cpp
  * @brief Production-ready SBOM analysis inheriting from BasePlugin
- * @version 0.3.1
+ * @version 0.4.2
  * @date 2026-04-05
  *
  * @author ZHENG Robert (robert@hase-zheng.net)
@@ -24,24 +24,25 @@ namespace ai_plugin {
 
 class SbomHeuristicPlugin : public BasePlugin {
 public:
-    [[nodiscard]] std::expected<std::string, std::string> analyze(std::string_view input_json, LLMClient* llm_client) override {
-        if (!llm_client) return std::unexpected("LLM client not provided");
+    [[nodiscard]] Task<std::expected<std::string, std::string>> analyze(std::string input_json, LLMClient* llm_client) override {
+        if (!llm_client) co_return std::unexpected("LLM client not provided");
         const auto input_pair = parse_input(input_json, "default");
         const auto& text = input_pair.first;
         [[maybe_unused]] const auto& mode = input_pair.second;
         LLMQuery q;
         q.system_prompt = std::string("Analysiere SBOM/Artefakt-Daten und liefere Herkunftsheuristiken. JSON Output.") + get_schema_instruction();
         q.prompt = text; q.json_schema = m_schema.dump();
-        auto result = llm_client->query(q);
-        if (!result) return std::unexpected(result.error());
+        
+        auto result = co_await llm_client->query(q);
+        if (!result) co_return std::unexpected(result.error());
         try {
             auto res_json = nlohmann::json::parse(result->content);
-            if (auto val = validate_output(res_json); !val) return std::unexpected(val.error());
-            return res_json.dump(2);
-        } catch (...) { return std::unexpected("Invalid LLM JSON"); }
+            if (auto val = validate_output(res_json); !val) co_return std::unexpected(val.error());
+            co_return res_json.dump(2);
+        } catch (...) { co_return std::unexpected("Invalid LLM JSON"); }
     }
 
-    [[nodiscard]] Generator<std::string> analyze_stream(std::string_view input_json, LLMClient* llm_client) override {
+    [[nodiscard]] Generator<std::string> analyze_stream(std::string input_json, LLMClient* llm_client) override {
         if (!llm_client) { co_yield "Error: LLM client not provided"; co_return; }
         const auto input_pair = parse_input(input_json, "default");
         const auto& text = input_pair.first;
@@ -52,7 +53,8 @@ public:
 
     void shutdown() override {}
     [[nodiscard]] std::string_view get_name() const override { return "sbom-heuristic-plugin"; }
-    [[nodiscard]] std::string_view get_version() const override { return "0.3.1"; }
+    [[nodiscard]] std::string_view get_version() const override { return "0.4.2"; }
+    [[nodiscard]] std::string_view get_description() const override { return "Heuristic analysis for Software Bill of Materials (SBOM)."; }
 
 protected:
     [[nodiscard]] std::string get_schema_path() const override { return "data/schemas/sbom_heuristic.schema.json"; }

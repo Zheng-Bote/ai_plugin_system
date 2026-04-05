@@ -7,7 +7,7 @@
  *
  * @file plugin_registry.hpp
  * @brief Automatic discovery and registration of plugins
- * @version 0.1.0
+ * @version 0.4.2
  * @date 2026-04-05
  *
  * @author ZHENG Robert (robert@hase-zheng.net)
@@ -55,10 +55,13 @@ public:
     }
 
     /**
-     * @brief Finds a plugin by its name.
+     * @brief Finds a plugin by its name. Tolerates case and dash/underscore differences.
      */
     Plugin* get_plugin(const std::string& name) {
-        if (m_registry.contains(name)) return m_registry[name];
+        std::string normalized = normalize_name(name);
+        for (const auto& [reg_name, plugin] : m_registry) {
+            if (normalize_name(reg_name) == normalized) return plugin;
+        }
         return nullptr;
     }
 
@@ -67,6 +70,15 @@ public:
 private:
     PluginManager& m_manager;
     std::map<std::string, Plugin*> m_registry;
+
+    std::string normalize_name(std::string_view name) const {
+        std::string result;
+        for (char c : name) {
+            if (c == '_' || c == '-') continue; // Skip separators
+            result += static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+        }
+        return result;
+    }
 };
 
 } // namespace ai_plugin

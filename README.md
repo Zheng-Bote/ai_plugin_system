@@ -39,28 +39,34 @@ cmake --build .
 
 ## Plugin Overview
 
-| Plugin Name | Description | Key Parameters |
-|-------------|-------------|----------------|
-| `text-analysis-plugin` | Sentiment analysis and classification. | `text` |
-| `summarization-plugin` | Auto-summarize long texts in various styles. | `text`, `mode` (short, bullet, executive, technical) |
-| `text-optimization-plugin` | Improve text clarity, tone, and grammar. | `text`, `mode` (clarity, formal, technical, etc.) |
-| `qa-plugin` | Question-Answering with source references. | `text`, `question`, `mode` |
-| `normalization-plugin` | Preprocessing (remove HTML, unify dates). | `text` |
-| `keywords-plugin` | Extract topics, entities, and tags. | `text` |
-| `prompt-opt-plugin` | Optimize LLM prompts for better results. | `text` |
-| `embeddings-plugin` | Generate high-dimensional vector representations. | `text` |
-| `sbom-heuristic-plugin` | Analyze Software Bill of Materials for origin patterns. | `component`, `context` |
+| Plugin Name                | Description                                             | Key Parameters                                       |
+| -------------------------- | ------------------------------------------------------- | ---------------------------------------------------- |
+| `text-analysis-plugin`     | Sentiment analysis and classification.                  | `text`                                               |
+| `summarization-plugin`     | Auto-summarize long texts in various styles.            | `text`, `mode` (short, bullet, executive, technical) |
+| `text-optimization-plugin` | Improve text clarity, tone, and grammar.                | `text`, `mode` (clarity, formal, technical, etc.)    |
+| `qa-plugin`                | Question-Answering with source references.              | `text`, `question`, `mode`                           |
+| `normalization-plugin`     | Preprocessing (remove HTML, unify dates).               | `text`                                               |
+| `keywords-plugin`          | Extract topics, entities, and tags.                     | `text`                                               |
+| `prompt-opt-plugin`        | Optimize LLM prompts for better results.                | `text`                                               |
+| `embeddings-plugin`        | Generate high-dimensional vector representations.       | `text`                                               |
+| `sbom-heuristic-plugin`    | Analyze Software Bill of Materials for origin patterns. | `component`, `context`                               |
 
 ## Usage
 
 Copy `.env.example` to `.env` and set your API Key.
 
 ```bash
-# Run a specific plugin via CLI
-./build/bin/ai_cli .env ./build/lib/libsummarization_plugin.so '{"text": "Very long text...", "mode": "executive"}'
+# List all discovered plugins
+./build/bin/ai_cli .env --list
+
+# Run a plugin by name (automatically discovered)
+./build/bin/ai_cli .env summarization '{"text": "Very long text...", "mode": "executive"}'
+
+# Run a plugin by explicit path
+./build/bin/ai_cli .env ./build/lib/libqa_plugin.so '{"text": "Context...", "question": "What...?"}'
 ```
 
 ## Roadmap
 
-- **v1 - v3**: Core Architecture, Async I/O, Schema Validation, BasePlugin Refactoring. *(Completed)*
-- **v4**: WASM-Sandboxing, Plugin discovery, Secret Manager integration.
+- **v1 - v4**: Core Architecture, Async I/O, Schema Validation, BasePlugin Refactoring. _(Completed)_
+- **v5**: WASM-Sandboxing, Plugin discovery, Secret Manager integration.
