@@ -8,7 +8,16 @@ The full documentation of the architecture and design decisions is located in th
 
 - [Architecture & Data Flow](docs/architecture/architecture.md)
 - [System Optimizations (v3+)](docs/architecture/optimizations.md)
-- [Plugin Documentation](docs/plugins/)
+- **Plugin Documentation:**
+  - [Text Analysis](docs/plugins/text_analysis.md)
+  - [Summarization](docs/plugins/summarization.md)
+  - [Text Optimization](docs/plugins/text_optimization.md)
+  - [Question-Answering (QA)](docs/plugins/qa.md)
+  - [Normalization](docs/plugins/normalization.md)
+  - [Keyword Extraction](docs/plugins/keywords.md)
+  - [Prompt Optimization](docs/plugins/prompt_optimization.md)
+  - [Embeddings Generator](docs/plugins/embeddings.md)
+  - [SBOM Heuristic](docs/plugins/sbom_heuristic.md)
 
 ## Key Features
 
