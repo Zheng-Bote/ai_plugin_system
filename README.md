@@ -2,6 +2,8 @@
 
 Ein modulares, erweiterbares CLI/Library-Stack mit Plug-In System und intelligentem Modell-Routing, implementiert in C++23.
 
+:arrow_right: <mark>:warning: still under construction :warning:</mark> :arrow_left:
+
 ## Dokumentation
 
 Die vollständige Dokumentation der Architektur und Designentscheidungen befindet sich im Ordner `docs/`.
