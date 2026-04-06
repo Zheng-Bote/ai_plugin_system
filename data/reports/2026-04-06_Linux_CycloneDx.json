@@ -1,0 +1,64 @@
+{
+  "bomFormat": "CycloneDX",
+  "components": [
+    {
+      "bom-ref": "pkg:generic/CURL::libcurl@unknown",
+      "licenses": [
+        {
+          "license": {
+            "name": "UNKNOWN"
+          }
+        }
+      ],
+      "name": "CURL::libcurl",
+      "purl": "pkg:generic/CURL::libcurl@unknown",
+      "type": "library",
+      "version": "unknown"
+    },
+    {
+      "bom-ref": "pkg:generic/dl@unknown",
+      "licenses": [
+        {
+          "license": {
+            "name": "UNKNOWN"
+          }
+        }
+      ],
+      "name": "dl",
+      "purl": "pkg:generic/dl@unknown",
+      "type": "library",
+      "version": "unknown"
+    },
+    {
+      "bom-ref": "pkg:generic/nlohmann_json::nlohmann_json@unknown",
+      "licenses": [
+        {
+          "license": {
+            "name": "UNKNOWN"
+          }
+        }
+      ],
+      "name": "nlohmann_json::nlohmann_json",
+      "purl": "pkg:generic/nlohmann_json::nlohmann_json@unknown",
+      "type": "library",
+      "version": "unknown"
+    }
+  ],
+  "metadata": {
+    "component": {
+      "name": "\"AI",
+      "type": "application"
+    },
+    "timestamp": "2026-04-06T14:18:00Z",
+    "tools": [
+      {
+        "name": "depdiscover",
+        "vendor": "ZHENG Bote",
+        "version": "1.4.0"
+      }
+    ]
+  },
+  "serialNumber": "urn:uuid:b3a88c26-8b13-488d-9662-3f7b6c0b96e7",
+  "specVersion": "1.4",
+  "version": 1
+}

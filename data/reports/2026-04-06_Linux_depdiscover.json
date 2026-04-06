@@ -1,0 +1,86 @@
+{
+  "dependencies": [
+    {
+      "cves": [
+        {
+          "fixed_version": "",
+          "id": "NOT-CHECKED",
+          "severity": "UNKNOWN",
+          "summary": "Version unknown or latest, cannot query OSV",
+          "suppressed": false,
+          "suppression_reason": ""
+        }
+      ],
+      "headers": [],
+      "libraries": [],
+      "licenses": [
+        "UNKNOWN"
+      ],
+      "name": "CURL::libcurl",
+      "source": "cmake_target",
+      "type": "cmake_target",
+      "version": "unknown"
+    },
+    {
+      "cves": [
+        {
+          "fixed_version": "",
+          "id": "NOT-CHECKED",
+          "severity": "UNKNOWN",
+          "summary": "Version unknown or latest, cannot query OSV",
+          "suppressed": false,
+          "suppression_reason": ""
+        }
+      ],
+      "headers": [
+        "/usr/include/dlfcn.h"
+      ],
+      "libraries": [],
+      "licenses": [
+        "UNKNOWN"
+      ],
+      "name": "dl",
+      "source": "cmake_target",
+      "type": "cmake_target",
+      "version": "unknown"
+    },
+    {
+      "cves": [
+        {
+          "fixed_version": "",
+          "id": "NOT-CHECKED",
+          "severity": "UNKNOWN",
+          "summary": "Version unknown or latest, cannot query OSV",
+          "suppressed": false,
+          "suppression_reason": ""
+        }
+      ],
+      "headers": [
+        "/usr/include/nlohmann/json.hpp"
+      ],
+      "libraries": [],
+      "licenses": [
+        "UNKNOWN"
+      ],
+      "name": "nlohmann_json::nlohmann_json",
+      "source": "cmake_target",
+      "type": "cmake_target",
+      "version": "unknown"
+    }
+  ],
+  "header": {
+    "project": {
+      "name": "\"AI",
+      "workspace_root": "/home/runner/work/ai_plugin_system/ai_plugin_system"
+    },
+    "scan_date": "2026-04-06",
+    "schema_version": "1.2",
+    "tool": {
+      "author": "ZHENG Bote",
+      "description": "Native C++ Dependency Scanner & SBOM Generator",
+      "homepage": "https://github.com/Zheng-Bote/depdiscover",
+      "name": "depdiscover",
+      "version": "1.4.0"
+    }
+  }
+}
