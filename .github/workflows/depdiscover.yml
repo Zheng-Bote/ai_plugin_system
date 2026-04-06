@@ -26,7 +26,7 @@ jobs:
           cmake --build build --parallel
 
       - name: Run depdiscover Action
-        uses: Zheng-Bote/depdiscover@main
+        uses: Zheng-Bote/depdiscover@v1
         with:
           project-name: "AI plugin-system"
           compile-commands: "build/compile_commands.json"
@@ -39,4 +39,21 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: depdiscover-reports
-          path: data/
+          path: data/reports/
+
+      - name: Commit depdiscover reports
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Reports hinzufügen
+          git add data/reports || true
+
+          # Nur committen, wenn es Änderungen gibt
+          if ! git diff --cached --quiet; then
+            git commit -m "Add depdiscover reports [skip ci]"
+            git push
+          else
+            echo "No changes to commit."
+          fi
