@@ -13,12 +13,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget pipx cmake ninja-build build-essential gcc-14 g++-14 libssl-dev nlohmann-json3-dev libcurl4-openssl-dev
+
       - name: Build Project
         # Ensure compile_commands.json and libs.txt are generated
         run: |
-          mkdir build && cd build
-          cmake .. -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-          cmake --build .
+          # mkdir build && cd build
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=gcc-14 -DCMAKE_CXX_COMPILER=g++-14 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          cmake --build build --parallel
 
       - name: Run depdiscover Action
         uses: Zheng-Bote/depdiscover@v1.3.1
