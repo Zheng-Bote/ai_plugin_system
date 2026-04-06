@@ -26,7 +26,7 @@ jobs:
           cmake --build build --parallel
 
       - name: Run depdiscover Action
-        uses: Zheng-Bote/depdiscover@v1.3.1
+        uses: Zheng-Bote/depdiscover@main
         with:
           project-name: "AI plugin-system"
           compile-commands: "build/compile_commands.json"
