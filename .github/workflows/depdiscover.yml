@@ -1,6 +1,7 @@
 name: Dependency Scan (depdiscover)
 # Author: ZHENG Robert
 # Version: v0.2.0
+# https://github.com/Zheng-Bote/depdiscover
 
 on:
   push:
